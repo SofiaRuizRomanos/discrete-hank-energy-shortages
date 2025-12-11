@@ -1,19 +1,9 @@
 # Importing
 import numpy as np
-import numba
-from scipy import optimize
-import matplotlib.pyplot as plt
-import pandas as pd
 import sequence_jacobian as ssj
-import graphviz
 
 
 ### Het inputs
-def asset_grid_Pieroni(amin, amax, n, curve):
-    a_grid = np.empty(n)
-    for i in range(1, n):
-        a_grid[i] = amin + (amax - amin) * ((i) / (n - 1)) ** curve
-    return a_grid
 
 
 def make_grids(rho_z, sd_z, n_z, amin, amax, n_a):
@@ -21,7 +11,6 @@ def make_grids(rho_z, sd_z, n_z, amin, amax, n_a):
         rho=rho_z, sigma=sd_z, N=n_z
     )
     a_grid = ssj.grids.agrid(amin=amin, amax=amax, n=n_a)
-    # a_grid = asset_grid_Pieroni(amin, amax, n_a, 3)
     # check : sum of probabilities for all states of productivity should be equal to 1
     check_sum_productivity = sum(pi_stationary)
     return z_grid, pi_stationary, Pi_trans, a_grid, check_sum_productivity
@@ -53,17 +42,6 @@ def hh_initial_guess_previous(a_grid, wz, transfers, r, gamma_c):
         -gamma_c
     )  # consumption is 10% of cash on hands, assets are 90%
 
-    ## restricting function:
-    # coh = (1 + r) * a_grid[np.newaxis, :] + wz[:, np.newaxis]
-    # c_guess = np.maximum(0, (0.1 * coh))
-    # Vprime_a = (1 + r) * c_guess ** (-gamma_c)
-
-    ## softplus function:
-    # coh = (
-    #     (1 + r) * a_grid[np.newaxis, :] + wz[:, np.newaxis] + transfers[:, np.newaxis]
-    # )  # added transfers: mistake corrected
-    # c_guess = 0.1 * np.log(1 + np.exp(coh))
-    # Vprime_a = (1 + r) * c_guess ** (-gamma_c)
     return Vprime_a
 
 
@@ -126,26 +104,6 @@ def get_mpc_transfers(c, a, a_grid, r, transfers):
 # Simple functions
 
 
-# @ssj.simple
-# def set_prices(p_index, p_e, alpha_c, sigma_c):
-#     numerator = p_index ** (1 - sigma_c) - alpha_c * p_e ** (1 - sigma_c)
-#     denominator = 1 - alpha_c
-#     p_g = (numerator / denominator) ** (1 / (1 - sigma_c))
-#     return p_g
-
-
-# @ssj.simple
-# def intermediate_firm(alpha_c, sigma_c, w, p_e, Y):
-#     mc = (alpha_c * (p_e ** (1 - sigma_c)) + (1 - alpha_c) * (w ** (1 - sigma_c))) ** (
-#         1 / (1 - sigma_c)
-#     )
-#     N = (1 - alpha_c) * ((w / mc) ** (-sigma_c)) * Y
-#     # at eq the demand for energy from all firms is that of intermediate firms
-#     E_int = alpha_c * ((p_e / mc) ** (-sigma_c)) * Y
-#     E_f = E_int
-#     return mc, E_f, N
-
-
 @ssj.simple
 def firm(alpha_c, sigma_c, w, p_e, theta_p, Y, p_index):
     numerator = p_index ** (1 - sigma_c) - alpha_c * p_e ** (1 - sigma_c)
@@ -164,26 +122,10 @@ def firm(alpha_c, sigma_c, w, p_e, theta_p, Y, p_index):
     return mc, E_f, N, profit, p_g
 
 
-# @ssj.simple
-# def final_firm(theta_p, Y):
-#     mu_p = theta_p / (theta_p - 1)
-#     profit = (1 - (mu_p ** (-1))) * Y
-#     return profit
-
-
 @ssj.simple
 def nkpc_ss():
     inf_p = 0
     return inf_p
-
-
-# @ssj.simple
-# def marg_rate_substitution(theta_w, NZ, nu_n, gamma_c, C):
-#     mu_w = theta_w / (theta_w - 1)
-#     v_prime = NZ**nu_n
-#     u_prime = C ** (-gamma_c)
-#     MRS = v_prime / u_prime
-#     return MRS
 
 
 @ssj.simple
@@ -215,12 +157,7 @@ def nkwpc_dynamic(theta_w, NZ, nu_n, gamma_c, C, inf_p, w):
     mu_w = theta_w / (theta_w - 1)
     v_prime = NZ**nu_n
     u_prime = C ** (-gamma_c)
-    # inf_w = 0
     target_w = (v_prime / u_prime) * (1 / mu_w) - w
-    # w_l1 = w(-1)
-    # # hard check
-    # if w_l1 == 0:
-    #     raise ValueError("nkwpc_dynamic: w(-1) is 0, wage inflation undefined")
     inf_w = ((w - w(-1)) / w(-1)) + inf_p
     return inf_w, target_w
 
@@ -229,12 +166,6 @@ def nkwpc_dynamic(theta_w, NZ, nu_n, gamma_c, C, inf_p, w):
 def taylor_rule_dynamic(r_ss, inf_p, phi_inf):
     i = r_ss + phi_inf * inf_p
     return i
-
-
-# @ssj.simple
-# def endowment_component(r, profit, B):
-#     Q = profit + r * B
-#     return Q
 
 
 @ssj.simple

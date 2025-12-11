@@ -1,11 +1,10 @@
 # calibrate_ss.py
 import copy
+import matplotlib
 
+matplotlib.use("Agg")
 
-# tqdm for nicer progress bars
 from tqdm import tqdm
-
-# --- Your modules (these must define hank_ss and return_statistics) ---
 
 import warnings
 from brute_force import brute_force_test, CalibrationState, BruteForceState
@@ -25,6 +24,7 @@ static_ss = {
     "Y": 1.0,
     "p_index": 1.0,
     "tax_total": 0.0,
+    "phi_inf": 1.25,
 }
 
 mutable_ss = {
@@ -65,11 +65,11 @@ test_mutable_bounds = [
     # ("n_a", (100, 200), True),  # 40 - 200
     # ("amax", (100, 200), True),  # à la HA (tutorial 3
     # ("beta", (0.995, 0.9968947368421053), False),
-    ("B", (4, 6), False, 10),  # was (5
-    # ("ce_min", (0.02, 0.05), False, 4),
-    ("E_s", (0.07, 0.2), False, 20),
-    ("r", (0.001, 0.1), False, 5),
-    ("p_e", (0.01, 2.1), False, 10),
+    ("B", (4, 6), False, 2),  # was (5
+    ("ce_min", (0.02, 0.05), False, 4),
+    # ("E_s", (0.07, 0.2), False, 20),
+    # ("r", (0.001, 0.1), False, 5),
+    # ("p_e", (0.01, 2.1), False, 10),
     # ("w", (0.6, 1), False, 4),
     # ("Y", (0.6, 1), False, 4),
 ]
@@ -100,7 +100,6 @@ if __name__ == "__main__":
     total = _compute_total_combinations(test_mutable_bounds, n_tests)
     print(f"Starting brute-force search: {total} total combinations")
     pbar = tqdm(total=total, desc="Brute tests")
-
     calibration_state = CalibrationState(
         calibration=copy.deepcopy({**static_ss, **mutable_ss}),
         unknowns=copy.deepcopy(unknowns_ss),

@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib
 
 # matplotlib.use("Agg")
 from matplotlib import pyplot as plt
@@ -180,7 +179,7 @@ def draw_figure_1(ss):
     ## getting data
     lorenz_x, lorenz_y = get_lorenz_curve(ss_internals["inc"], ss_internals["D"])
 
-    Pieroni_lorenz_file_path = "/Users/sofia/Documents/Dauphine/Master Thesis/Pieroni files/Replication_files_EER/main/model_ext/Pieroni_Lorenz_curve.csv"
+    Pieroni_lorenz_file_path = "pieroni_data/Pieroni_Lorenz_curve.csv"
     lorenz_x_Pieroni, lorenz_y_Pieroni = np.loadtxt(
         Pieroni_lorenz_file_path, delimiter=",", unpack=True
     )
@@ -459,19 +458,6 @@ def return_statistics(ss):
         },
     }
 
-    # def fmt(x):
-    #     try:
-    #         return f"{float(x):.4f}"
-    #     except Exception:
-    #         return str(x)
-
-    # for stat_name, vals in results_dict.items():
-    #     print(
-    #         f"Statistic: {stat_name}\n"
-    #         f"  Model: {fmt(vals.get('Model'))}\n"
-    #         f"  Pieroni: {fmt(vals.get('Pieroni'))}\n"
-    #         f"  Target: {fmt(vals.get('Target'))}\n"
-    #     )
     return results_dict
 
 
@@ -484,7 +470,7 @@ def draw_figures(ss):
     ## getting data
     lorenz_x, lorenz_y = get_lorenz_curve(ss_internals["inc"], ss_internals["D"])
 
-    Pieroni_lorenz_file_path = "./Pieroni_Lorenz_curve.csv"
+    Pieroni_lorenz_file_path = "pieroni_data/Pieroni_Lorenz_curve.csv"
     lorenz_x_Pieroni, lorenz_y_Pieroni = np.loadtxt(
         Pieroni_lorenz_file_path, delimiter=",", unpack=True
     )

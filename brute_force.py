@@ -1,7 +1,8 @@
+import sys
 import model_functions as hank  # must define hank_ss and blocks
+from matplotlib import pyplot as plt
 import ss_analysis_functions as analysis  # must define return_statistics
 from math import isfinite
-from matplotlib import pyplot as plt
 import pickle
 import os
 
@@ -74,6 +75,9 @@ class CalibrationState:
 
 
 model_targets = {
+    # "name": (target_value, multiplier, (low_bound, high_bound))
+    # multiplier is used to weight the importance of each statistic in the scoring function
+    # Currently standardized so that each reaches a value of 10
     "average_wealth_to_income_share": (4.2, 2.38, (4, 4.4)),
     "total_energy_share_output": (0.04, 250, (0.04, 0.043)),
     "average_energy_expenditure_share": (0.09, 111.11, (0.06, 0.12)),
@@ -204,8 +208,14 @@ def store_solution(
             f"\nNew best score with solution #{brute_force_state.global_total_solutions}: {brute_force_state.global_best_score:.6g} "  # output the fact that we found something better
         )
 
-    if folder != "rejected_solutions":
-        write_solution_files(folder, stats, calibration_state, brute_force_state, ss)
+    if folder != "rejected_solutions":  # uncomment to save all solutions
+        write_solution_files(
+            f"brute_force_results/{folder}",
+            stats,
+            calibration_state,
+            brute_force_state,
+            ss,
+        )
 
 
 def brute_force_test(
@@ -218,16 +228,10 @@ def brute_force_test(
     if mutable_params:
         param_to_vary = mutable_params[0]
         param_name, (low, high), is_integer, n_iters = param_to_vary
-        prev_val = low - 1
-        sig_figs = 0.0001
         for i in range(n_iters):
             val = low + (high - low) * i / (n_iters - 1)
-            # if val - prev_val < sig_figs:
-            #     pbar.update(n_tests ** (len(mutable_params) - 1))
-            #     continue
             if is_integer:
                 val = int(round(val))
-            prev_val = val
 
             calibration_state.set(param_name, val)
 
@@ -253,7 +257,6 @@ def brute_force_test(
             pbar.update(1)
 
         except Exception as e:
-            # print(f"Calibration failed: {e}")
             pbar.update(1)
 
 
@@ -262,8 +265,3 @@ if __name__ == "__main__":
     best_ss, best_score, best_params = brute_force_state.get_best_from_cache()
     print(f"Best score from cache: {best_score} with params {best_params}")
     print(analysis.return_statistics(best_ss))
-
-    analysis.draw_figures(best_ss)
-    outpath = f"best_solutions/best_solution_overall.png"
-    plt.savefig(outpath, bbox_inches="tight")
-    plt.close()  # closes the current figure
